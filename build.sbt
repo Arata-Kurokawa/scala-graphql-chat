@@ -15,3 +15,10 @@ libraryDependencies += "org.scalatestplus.play" %% "scalatestplus-play" % "5.0.0
 
 // Adds additional packages into conf/routes
 // play.sbt.routes.RoutesKeys.routesImport += "com.aktumitaha.scala-graphql-chat.binders._"
+
+libraryDependencies ++= Seq(
+  "org.sangria-graphql" %% "sangria" % "2.1.6",
+  "org.sangria-graphql" %% "sangria-play-json" % "2.0.2"
+)
+
+PlayKeys.devSettings := Seq("play.server.http.port" -> "9001")
