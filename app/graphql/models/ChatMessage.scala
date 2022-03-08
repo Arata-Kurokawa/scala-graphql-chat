@@ -7,15 +7,13 @@
 
 package graphql.models
 
+import graphql.models.LongIdentifiable.LongIdentifiableType
 import sangria.macros.derive._
 
-import graphql.models.LongIdentifiable._
-import graphql.models.ChatMessage._
-
-case class ChatRoom(id: Long, name: String, messages: Seq[ChatMessage])
+case class ChatMessage(id: Long, chatRoomId: Long, message: String)
     extends LongIdentifiable
 
-object ChatRoom {
-  implicit val ChatRoomType =
-    deriveObjectType[Unit, ChatRoom](Interfaces(LongIdentifiableType))
+object ChatMessage {
+  implicit val ChatMessageType =
+    deriveObjectType[Unit, ChatMessage](Interfaces(LongIdentifiableType))
 }

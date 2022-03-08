@@ -7,13 +7,44 @@
 
 package graphql.resolvers
 
-import graphql.models.ChatRoom
-import repositories.ChatRoomRepository
+import graphql.models.{ChatRoom, ChatMessage}
+import repositories.{ChatMessageRepository, ChatRoomRepository}
 
 class ChatRoomResolver {
   // TODO 依存注入
-  private val repository: ChatRoomRepository = ChatRoomRepository()
+  private val chatRoomRepository: ChatRoomRepository = ChatRoomRepository()
+  private val chatMessageRepository: ChatMessageRepository =
+    ChatMessageRepository()
 
-  def find(id: Long): Option[ChatRoom] = repository.find(id).map(eChatRoom => ChatRoom(eChatRoom.id, eChatRoom.name))
-  def list: Seq[ChatRoom] = repository.list.map(eChatRoom => ChatRoom(eChatRoom.id, eChatRoom.name))
+  def find(id: Long): Option[ChatRoom] = {
+
+    chatRoomRepository
+      .find(id)
+      .map(eChatRoom => {
+        val chatMessageSeq = chatMessageRepository
+          .findByChatRoom(id)
+          .map(message =>
+            ChatMessage(message.id, message.chatRoomId, message.message)
+          )
+        ChatRoom(eChatRoom.id, eChatRoom.name, chatMessageSeq)
+      })
+  }
+  def list: Seq[ChatRoom] = {
+    val eChatRoomSeq = chatRoomRepository.list
+    val eChatMessageMap =
+      chatMessageRepository
+        .findByChatRooms(eChatRoomSeq.map(_.id))
+        .map(message =>
+          ChatMessage(message.id, message.chatRoomId, message.message)
+        )
+        .groupBy(_.chatRoomId)
+
+    eChatRoomSeq.map(eChatRoom => {
+      ChatRoom(
+        eChatRoom.id,
+        eChatRoom.name,
+        eChatMessageMap.getOrElse(eChatRoom.id, Nil)
+      )
+    })
+  }
 }

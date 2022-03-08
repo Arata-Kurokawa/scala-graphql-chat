@@ -15,6 +15,10 @@ object TestRequest {
       query chatRoom1 {
         chatRoom(id: 1) {
           name
+          messages {
+            id
+            message
+          }
         }
 
         chatRooms {
@@ -29,11 +33,19 @@ object TestRequest {
         chatRoom(id: 2) {
           id
           name
+          messages {
+            id
+            message
+          }
         }
 
         chatRooms {
           id
           name
+          messages {
+            id
+            message
+          }
         }
       }
     """
