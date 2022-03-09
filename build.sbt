@@ -21,4 +21,4 @@ libraryDependencies ++= Seq(
   "org.sangria-graphql" %% "sangria-play-json" % "2.0.2"
 )
 
-PlayKeys.devSettings := Seq("play.server.http.port" -> "9001")
+PlayKeys.devSettings := Seq("play.server.http.port" -> "9000")
