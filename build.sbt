@@ -16,9 +16,21 @@ libraryDependencies += "org.scalatestplus.play" %% "scalatestplus-play" % "5.0.0
 // Adds additional packages into conf/routes
 // play.sbt.routes.RoutesKeys.routesImport += "com.aktumitaha.scala-graphql-chat.binders._"
 
+// graphql
 libraryDependencies ++= Seq(
   "org.sangria-graphql" %% "sangria" % "2.1.6",
   "org.sangria-graphql" %% "sangria-play-json" % "2.0.2"
 )
+
+// scalikejdbc
+libraryDependencies ++= Seq(
+  "org.scalikejdbc" %% "scalikejdbc" % "3.5.0",
+  "org.scalikejdbc" %% "scalikejdbc-config" % "3.5.0",
+  "org.scalikejdbc" %% "scalikejdbc-play-initializer" % "2.8.0-scalikejdbc-3.5",
+  "ch.qos.logback" % "logback-classic" % "1.2.3"
+)
+
+// mysql
+libraryDependencies += "mysql" % "mysql-connector-java" % "6.0.6"
 
 PlayKeys.devSettings := Seq("play.server.http.port" -> "9000")

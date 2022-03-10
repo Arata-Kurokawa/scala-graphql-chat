@@ -1,15 +1,27 @@
 package repositories
 
 import entities.ChatRoom
+import repositories.persistences.mysql.ChatRoomTable
+import scalikejdbc._
 
 case class ChatRoomRepository() {
-  private val chatRooms = Seq(
-    ChatRoom(1L, "chat room 1"),
-    ChatRoom(2L, "chat room 2"),
-    ChatRoom(3L, "chat room 3"),
-    ChatRoom(4L, "chat room 4")
-  )
+  def find(id: Long): Option[ChatRoom] = {
+    val cr = ChatRoomTable.syntax("cr")
 
-  def find(id: Long): Option[ChatRoom] = chatRooms.find(_.id == id)
-  def list: Seq[ChatRoom] = chatRooms
+    DB.localTx { implicit session =>
+      withSQL {
+        select.from(ChatRoomTable as cr).where.eq(cr.id, id)
+      }.map(ChatRoomTable(cr.resultName)).single().apply()
+    }
+  }
+
+  def list: Seq[ChatRoom] = {
+    val cr = ChatRoomTable.syntax("cr")
+
+    DB.localTx { implicit session =>
+      withSQL {
+        select.from(ChatRoomTable as cr)
+      }.map(ChatRoomTable(cr.resultName)).list().apply()
+    }
+  }
 }
