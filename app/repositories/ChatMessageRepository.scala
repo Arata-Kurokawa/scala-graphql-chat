@@ -1,22 +1,38 @@
 package repositories
 
 import entities.ChatMessage
+import repositories.persistences.mysql.ChatMessageTable
+import scalikejdbc._
 
 case class ChatMessageRepository() {
-  private val chatMessages = Seq(
-    ChatMessage(1L, 1L, "chat room 1 message 1"),
-    ChatMessage(2L, 1L, "chat room 1 message 2"),
-    ChatMessage(3L, 2L, "chat room 2 message 3"),
-    ChatMessage(4L, 3L, "chat room 3 message 4"),
-    ChatMessage(5L, 4L, "chat room 4 message 5"),
-    ChatMessage(6L, 4L, "chat room 4 message 6")
-  )
-
   def findByChatRoom(chatRoomId: Long): Seq[ChatMessage] = {
-    chatMessages.filter(_.chatRoomId == chatRoomId)
+    val cm = ChatMessageTable.syntax("cm")
+
+    DB.localTx { implicit session =>
+      withSQL {
+        select.from(ChatMessageTable as cm).where.eq(cm.chatRoomId, chatRoomId)
+      }.map(ChatMessageTable(cm.resultName)).list().apply()
+    }
   }
 
   def findByChatRooms(chatRoomIdSeq: Seq[Long]): Seq[ChatMessage] = {
-    chatMessages.filter(message => chatRoomIdSeq.contains(message.chatRoomId))
+    val cm = ChatMessageTable.syntax("cm")
+
+    DB.localTx { implicit session =>
+      withSQL {
+        select.from(ChatMessageTable as cm).where.in(cm.chatRoomId, chatRoomIdSeq)
+      }.map(ChatMessageTable(cm.resultName)).list().apply()
+    }
+  }
+
+  def add(chatRoomId: Long, message: String): Long = {
+    DB.localTx { implicit session =>
+      withSQL {
+        insert.into(ChatMessageTable).namedValues(
+          ChatMessageTable.column.chatRoomId -> chatRoomId,
+          ChatMessageTable.column.message -> message
+        )
+      }.updateAndReturnGeneratedKey().apply()
+    }
   }
 }

@@ -6,7 +6,7 @@ import sangria.schema._
 import graphql.models.ChatRoom._
 
 object ChatRoomQuery {
-  val queries = fields[Resolvers, Unit](
+  val queries: Seq[Field[Resolvers, Unit]] = fields[Resolvers, Unit](
     Field(
       name = "chatRoom",
       fieldType = OptionType(ChatRoomType),

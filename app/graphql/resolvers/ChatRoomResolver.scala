@@ -3,7 +3,7 @@ package graphql.resolvers
 import graphql.models.{ChatRoom, ChatMessage}
 import repositories.{ChatMessageRepository, ChatRoomRepository}
 
-class ChatRoomResolver {
+case class ChatRoomResolver() {
   // TODO 依存注入
   private val chatRoomRepository: ChatRoomRepository = ChatRoomRepository()
   private val chatMessageRepository: ChatMessageRepository =

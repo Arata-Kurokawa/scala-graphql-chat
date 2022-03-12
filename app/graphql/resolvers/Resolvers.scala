@@ -1,5 +1,6 @@
 package graphql.resolvers
 
-class Resolvers {
-  val chatRoomResolver = new ChatRoomResolver()
+case class Resolvers() {
+  val chatRoomResolver: ChatRoomResolver = ChatRoomResolver()
+  val chatMessageResolver: ChatMessageResolver = ChatMessageResolver()
 }

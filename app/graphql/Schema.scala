@@ -1,5 +1,6 @@
 package graphql
 
+import graphql.mutations.ChatMessageMutation
 import graphql.queries.ChatRoomQuery
 import sangria.schema._
 
@@ -9,6 +10,14 @@ object Schema {
       "Query",
       fields(
         ChatRoomQuery.queries: _*
+      )
+    ),
+    mutation = Some(
+      ObjectType(
+        "Mutation",
+        fields(
+          ChatMessageMutation.mutations: _*
+        )
       )
     )
   )
