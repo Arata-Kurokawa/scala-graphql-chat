@@ -20,10 +20,12 @@ libraryDependencies += "org.scalatestplus.play" %% "scalatestplus-play" % "5.0.0
 libraryDependencies ++= Seq(
   "org.sangria-graphql" %% "sangria" % "2.1.6",
   "org.sangria-graphql" %% "sangria-play-json" % "2.0.2",
+)
 
-  // stream
-  "org.sangria-graphql" %% "sangria-akka-streams" % "1.0.2",
-  "org.sangria-graphql" %% "sangria-monix" % "2.0.1"
+// akka-stream
+libraryDependencies ++= Seq(
+  "com.typesafe.akka" %% "akka-stream-kafka" % "3.0.0",
+  "com.typesafe.akka" %% "akka-stream" % "2.6.18"
 )
 
 // scalikejdbc
