@@ -19,7 +19,7 @@ libraryDependencies += "org.scalatestplus.play" %% "scalatestplus-play" % "5.0.0
 // graphql
 libraryDependencies ++= Seq(
   "org.sangria-graphql" %% "sangria" % "2.1.6",
-  "org.sangria-graphql" %% "sangria-play-json" % "2.0.2",
+  "org.sangria-graphql" %% "sangria-play-json" % "2.0.2"
 )
 
 // akka-stream
@@ -39,4 +39,5 @@ libraryDependencies ++= Seq(
 // mysql
 libraryDependencies += "mysql" % "mysql-connector-java" % "6.0.6"
 
+// play.server.http
 PlayKeys.devSettings := Seq("play.server.http.port" -> "9000")
