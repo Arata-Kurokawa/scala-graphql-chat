@@ -22,10 +22,12 @@ libraryDependencies ++= Seq(
   "org.sangria-graphql" %% "sangria-play-json" % "2.0.2"
 )
 
-// akka-stream
+// akka
+val AkkaVersion = "2.6.18"
 libraryDependencies ++= Seq(
   "com.typesafe.akka" %% "akka-stream-kafka" % "3.0.0",
-  "com.typesafe.akka" %% "akka-stream" % "2.6.18"
+  "com.typesafe.akka" %% "akka-stream" % AkkaVersion,
+  "com.typesafe.akka" %% "akka-discovery" % AkkaVersion
 )
 
 // scalikejdbc
