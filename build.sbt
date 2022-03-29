@@ -16,13 +16,17 @@ libraryDependencies += "org.scalatestplus.play" %% "scalatestplus-play" % "5.0.0
 // Adds additional packages into conf/routes
 // play.sbt.routes.RoutesKeys.routesImport += "com.aktumitaha.scala-graphql-chat.binders._"
 
+// ####################
 // graphql
+// ####################
 libraryDependencies ++= Seq(
   "org.sangria-graphql" %% "sangria" % "2.1.6",
   "org.sangria-graphql" %% "sangria-play-json" % "2.0.2"
 )
 
+// ####################
 // akka
+// ####################
 val AkkaVersion = "2.6.18"
 libraryDependencies ++= Seq(
   "com.typesafe.akka" %% "akka-stream-kafka" % "3.0.0",
@@ -30,7 +34,9 @@ libraryDependencies ++= Seq(
   "com.typesafe.akka" %% "akka-discovery" % AkkaVersion
 )
 
+// ####################
 // scalikejdbc
+// ####################
 libraryDependencies ++= Seq(
   "org.scalikejdbc" %% "scalikejdbc" % "3.5.0",
   "org.scalikejdbc" %% "scalikejdbc-config" % "3.5.0",
@@ -38,8 +44,14 @@ libraryDependencies ++= Seq(
   "ch.qos.logback" % "logback-classic" % "1.2.3"
 )
 
+// ####################
 // mysql
+// ####################
 libraryDependencies += "mysql" % "mysql-connector-java" % "6.0.6"
 
-// play.server.http
+// ####################
+// play.server
+// ####################
 PlayKeys.devSettings := Seq("play.server.http.port" -> "9000")
+// websocketの接続を維持するため開発環境のみidleTimeoutをinfiniteに設定
+PlayKeys.devSettings += "play.server.http.idleTimeout" -> "infinite"
