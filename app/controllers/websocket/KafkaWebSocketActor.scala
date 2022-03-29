@@ -11,15 +11,15 @@ import akka.actor.{Actor, ActorRef, Props}
 import akka.kafka.scaladsl.Consumer
 import play.api.libs.json.Json
 
-object KafkaWebSocket {
+object KafkaWebSocketActor {
   def props(
       out: ActorRef,
       control: Consumer.Control
   ) =
-    Props(new KafkaWebSocket(out, control))
+    Props(new KafkaWebSocketActor(out, control))
 }
 
-class KafkaWebSocket(
+class KafkaWebSocketActor(
     out: ActorRef,
     control: Consumer.Control
 ) extends Actor {

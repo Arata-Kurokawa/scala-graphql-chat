@@ -22,7 +22,7 @@ import org.apache.kafka.common.serialization.{
   StringDeserializer,
   StringSerializer
 }
-import play.api.libs.json.{Json}
+import play.api.libs.json.Json
 import play.api.libs.streams.ActorFlow
 import play.api.mvc.InjectedController
 import play.api.mvc.WebSocket.MessageFlowTransformer
@@ -32,7 +32,7 @@ import play.api.mvc._
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import akka.kafka.scaladsl.Consumer.DrainingControl
-import controllers.websocket.KafkaWebSocket
+import controllers.websocket.KafkaWebSocketActor
 
 import java.time.LocalDateTime
 
@@ -139,7 +139,7 @@ class KafkaController @Inject() extends InjectedController {
           }))(DrainingControl.apply)
           .run()
 
-        KafkaWebSocket.props(out, control)
+        KafkaWebSocketActor.props(out, control)
       }
   }
 }
