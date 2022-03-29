@@ -53,5 +53,3 @@ libraryDependencies += "mysql" % "mysql-connector-java" % "6.0.6"
 // play.server
 // ####################
 PlayKeys.devSettings := Seq("play.server.http.port" -> "9000")
-// websocketの接続を維持するため開発環境のみidleTimeoutをinfiniteに設定
-PlayKeys.devSettings += "play.server.http.idleTimeout" -> "infinite"

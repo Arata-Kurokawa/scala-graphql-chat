@@ -34,6 +34,8 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import akka.kafka.scaladsl.Consumer.DrainingControl
 import controllers.websocket.KafkaWebSocketActor
 
+import scala.concurrent.duration.DurationInt
+
 import java.time.LocalDateTime
 
 class KafkaController @Inject() extends InjectedController {
@@ -139,7 +141,18 @@ class KafkaController @Inject() extends InjectedController {
           }))(DrainingControl.apply)
           .run()
 
-        KafkaWebSocketActor.props(out, control)
+        // websocketの接続維持のためメッセージ送信
+        // 本来はtypeなどを持ったjsonを返しクライアントでフィルターする想定
+        val ping = Source
+          .tick(
+            30.second, // delay of first tick
+            30.second, // delay of subsequent ticks
+            "ping" // element emitted each tick
+          )
+          .to(Sink.foreach(m => { out ! m }))
+          .run()
+
+        KafkaWebSocketActor.props(out, control, ping)
       }
   }
 }

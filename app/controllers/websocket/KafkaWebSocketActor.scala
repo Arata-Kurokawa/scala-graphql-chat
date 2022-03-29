@@ -7,28 +7,30 @@
 
 package controllers.websocket
 
-import akka.actor.{Actor, ActorRef, Props}
+import akka.actor.{Actor, ActorRef, Cancellable, Props}
 import akka.kafka.scaladsl.Consumer
-import play.api.libs.json.Json
 
 object KafkaWebSocketActor {
   def props(
       out: ActorRef,
-      control: Consumer.Control
+      control: Consumer.Control,
+      ping: Cancellable
   ) =
-    Props(new KafkaWebSocketActor(out, control))
+    Props(new KafkaWebSocketActor(out, control, ping))
 }
 
 class KafkaWebSocketActor(
     out: ActorRef,
-    control: Consumer.Control
+    control: Consumer.Control,
+    ping: Cancellable
 ) extends Actor {
   def receive = { case msg: String =>
-    out ! Json.obj("message" -> msg)
+    out ! msg
   }
 
   override def postStop(): Unit = {
     super.postStop()
     control.shutdown()
+    ping.cancel()
   }
 }
