@@ -1,10 +1,3 @@
-/*
- * This file is part of the KIDSNA Connect service.
- *
- * For the full copyright and license information,
- * please view the LICENSE file that was distributed with this source code.
- */
-
 package controllers
 
 import akka.actor.ActorSystem
@@ -24,7 +17,7 @@ import org.apache.kafka.common.serialization.{
 }
 import play.api.libs.json.{JsValue, Json}
 import play.api.libs.streams.ActorFlow
-import play.api.mvc.{request, _}
+import play.api.mvc._
 
 import javax.inject.Inject
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -155,7 +148,6 @@ class KafkaController @Inject() extends InjectedController {
                 // メッセージを受信したらwebsocketに連携
                 val control = topicSource
                   .toMat(Sink.foreach(m => {
-                    println("++++++++++++++++++++++++++++++++++++++")
                     out ! Json.toJson(Json.obj("message" -> m))
                   }))(DrainingControl.apply)
                   .run()
