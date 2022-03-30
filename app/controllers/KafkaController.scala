@@ -22,23 +22,36 @@ import org.apache.kafka.common.serialization.{
   StringDeserializer,
   StringSerializer
 }
-import play.api.libs.json.Json
+import play.api.libs.json.{JsValue, Json}
 import play.api.libs.streams.ActorFlow
-import play.api.mvc.InjectedController
+import play.api.mvc.{request, _}
 
 import javax.inject.Inject
-import play.api.mvc._
-
 import scala.concurrent.ExecutionContext.Implicits.global
 import akka.kafka.scaladsl.Consumer.DrainingControl
 import controllers.websocket.KafkaWebSocketActor
+import play.api.mvc.WebSocket.MessageFlowTransformer
 
 import scala.concurrent.duration.DurationInt
-
 import java.time.LocalDateTime
+import scala.concurrent.Future
 
 class KafkaController @Inject() extends InjectedController {
   implicit val system = ActorSystem()
+
+  def login: Action[AnyContent] = Action { implicit request =>
+    println("----------------------------------------------------")
+    println(request.session.get("_login"))
+    NoContent.withSession(
+      request.session + ("_login" -> "yes")
+    )
+  }
+
+  def logout: Action[AnyContent] = Action { implicit request =>
+    NoContent.withSession(
+      request.session + ("_login" -> "no")
+    )
+  }
 
   def producer: Action[AnyContent] = Action.async { implicit request =>
     val config = system.settings.config.getConfig("our-kafka-producer")
@@ -81,47 +94,90 @@ class KafkaController @Inject() extends InjectedController {
     }
   }
 
-  def consumer() = WebSocket.accept[String, String] { implicit request =>
-    ActorFlow.actorRef { out =>
-      val consumerConfig =
-        system.settings.config.getConfig("our-kafka-consumer")
+  def sendMessage() = Action(parse.json).async { implicit request =>
+    val message = (request.body \ "message").as[String]
 
-      val consumerSettings =
-        ConsumerSettings(
-          consumerConfig,
-          new StringDeserializer,
-          new StringDeserializer
-        ).withGroupId(LocalDateTime.now().toString)
+    val config = system.settings.config.getConfig("our-kafka-producer")
+    val producerSettings =
+      ProducerSettings(config, new StringSerializer, new StringSerializer)
 
-      val topicSource =
-        Consumer
-          .plainSource[String, String](
-            consumerSettings,
-            Subscriptions.topics("test")
-          )
-          .map(consumerRecord => consumerRecord.value)
-
-      val control = topicSource
-        .toMat(Sink.foreach(m => {
-          println(
-            "+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++"
-          )
-          out ! m
-        }))(DrainingControl.apply)
-        .run()
-
-      // websocketの接続維持のためメッセージ送信
-      // 本来はtypeなどを持ったjsonを返しクライアントでフィルターする想定
-      val ping = Source
-        .tick(
-          30.second, // delay of first tick
-          30.second, // delay of subsequent ticks
-          "ping" // element emitted each tick
+    val done = Source(Seq(message))
+      .map { m =>
+        ProducerMessage.single(
+          new ProducerRecord("test", "key", m),
+          1
         )
-        .to(Sink.foreach(m => { out ! m }))
-        .run()
+      }
+      .via(Producer.flexiFlow(producerSettings))
+      .run()
 
-      KafkaWebSocketActor.props(out, control, ping)
+    for {
+      _ <- done
+    } yield {
+      NoContent
     }
+  }
+
+  implicit val messageFlowTransformer: MessageFlowTransformer[String, JsValue] =
+    MessageFlowTransformer.jsonMessageFlowTransformer[String, JsValue]
+
+  def consumer() = WebSocket.acceptOrResult[String, JsValue] {
+    implicit request =>
+      println("======================================================")
+      println(request.session.get("_login"))
+      Future.successful(
+        request.session.get("_login") match {
+          case Some(m) if m == "yes" =>
+            Right(
+              ActorFlow.actorRef { out =>
+                // 設定値取得
+                val consumerConfig =
+                  system.settings.config.getConfig("our-kafka-consumer")
+
+                // consumer設定
+                val consumerSettings =
+                  ConsumerSettings(
+                    consumerConfig,
+                    new StringDeserializer,
+                    new StringDeserializer
+                  ).withGroupId(LocalDateTime.now().toString)
+
+                // kafkaを監視するSource
+                val topicSource =
+                  Consumer
+                    .plainSource[String, String](
+                      consumerSettings,
+                      Subscriptions.topics("test")
+                    )
+                    .map(consumerRecord => consumerRecord.value)
+
+                // 監視開始
+                // メッセージを受信したらwebsocketに連携
+                val control = topicSource
+                  .toMat(Sink.foreach(m => {
+                    println("++++++++++++++++++++++++++++++++++++++")
+                    out ! Json.toJson(Json.obj("message" -> m))
+                  }))(DrainingControl.apply)
+                  .run()
+
+                // websocketの接続維持のためメッセージ送信
+                // 本来はtypeなどを持ったjsonを返しクライアントでフィルターする想定
+                val ping = Source
+                  .tick(
+                    3.second, // delay of first tick
+                    30.second, // delay of subsequent ticks
+                    "ping" // element emitted each tick
+                  )
+                  .to(Sink.foreach(m => {
+                    out ! Json.toJson(Json.obj("message" -> m))
+                  }))
+                  .run()
+
+                KafkaWebSocketActor.props(out, control, ping)
+              }
+            )
+          case _ => Left(Forbidden)
+        }
+      )
   }
 }

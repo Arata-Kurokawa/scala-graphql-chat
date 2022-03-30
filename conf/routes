@@ -13,11 +13,14 @@ GET     /assets/*file               controllers.Assets.versioned(path="/public",
 #################
 # graphql
 ##################
-POST /graphql                       controllers.GraphqlController.post()
+POST    /graphql                    controllers.GraphqlController.post()
 
 
 ################
 # kafka
 ################
-GET /kafka/producer                  controllers.KafkaController.producer()
-GET /kafka/consumer                  controllers.KafkaController.consumer()
+GET    /kafka/login                 controllers.KafkaController.login()
+GET    /kafka/logout                controllers.KafkaController.logout()
+GET    /kafka/producer              controllers.KafkaController.producer()
+GET    /kafka/consumer              controllers.KafkaController.consumer()
+POST   /kafka/sendMessage           controllers.KafkaController.sendMessage()
