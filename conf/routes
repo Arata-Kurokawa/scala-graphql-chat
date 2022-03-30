@@ -19,6 +19,5 @@ POST /graphql                       controllers.GraphqlController.post()
 ################
 # kafka
 ################
-GET /kafka/testProducer                   controllers.KafkaController.testProducer()
-GET /kafka/testConsumer                   controllers.KafkaController.testConsumer()
-GET /kafka/testConsumerWebSocket          controllers.KafkaController.testConsumerWebSocket()
+GET /kafka/producer                  controllers.KafkaController.producer()
+GET /kafka/consumer                  controllers.KafkaController.consumer()

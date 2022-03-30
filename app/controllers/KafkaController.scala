@@ -25,7 +25,6 @@ import org.apache.kafka.common.serialization.{
 import play.api.libs.json.Json
 import play.api.libs.streams.ActorFlow
 import play.api.mvc.InjectedController
-import play.api.mvc.WebSocket.MessageFlowTransformer
 
 import javax.inject.Inject
 import play.api.mvc._
@@ -41,7 +40,7 @@ import java.time.LocalDateTime
 class KafkaController @Inject() extends InjectedController {
   implicit val system = ActorSystem()
 
-  def testProducer: Action[AnyContent] = Action.async { implicit request =>
+  def producer: Action[AnyContent] = Action.async { implicit request =>
     val config = system.settings.config.getConfig("our-kafka-producer")
     val producerSettings =
       ProducerSettings(config, new StringSerializer, new StringSerializer)
@@ -82,77 +81,47 @@ class KafkaController @Inject() extends InjectedController {
     }
   }
 
-  def testConsumer() = Action.async { implicit request =>
-    val consumerConfig =
-      system.settings.config.getConfig("our-kafka-consumer")
+  def consumer() = WebSocket.accept[String, String] { implicit request =>
+    ActorFlow.actorRef { out =>
+      val consumerConfig =
+        system.settings.config.getConfig("our-kafka-consumer")
 
-    val consumerSettings =
-      ConsumerSettings(
-        consumerConfig,
-        new StringDeserializer,
-        new StringDeserializer
-      ).withGroupId("group1")
+      val consumerSettings =
+        ConsumerSettings(
+          consumerConfig,
+          new StringDeserializer,
+          new StringDeserializer
+        ).withGroupId(LocalDateTime.now().toString)
 
-    val topicSource =
-      Consumer
-        .plainSource[String, String](
-          consumerSettings,
-          Subscriptions.topics("test")
-        )
-        .map(consumerRecord => consumerRecord.value)
-
-    for {
-      _ <- topicSource.runWith(Sink.foreach(println(_)))
-    } yield {
-      Ok(Json.toJson(Json.obj("test" -> "test")))
-    }
-  }
-
-  implicit val messageFlowTransformer =
-    MessageFlowTransformer.jsonMessageFlowTransformer[String, String]
-
-  def testConsumerWebSocket() = WebSocket.accept[String, String] {
-    implicit request =>
-      ActorFlow.actorRef { out =>
-        val consumerConfig =
-          system.settings.config.getConfig("our-kafka-consumer")
-
-        val consumerSettings =
-          ConsumerSettings(
-            consumerConfig,
-            new StringDeserializer,
-            new StringDeserializer
-          ).withGroupId(LocalDateTime.now().toString)
-
-        val topicSource =
-          Consumer
-            .plainSource[String, String](
-              consumerSettings,
-              Subscriptions.topics("test")
-            )
-            .map(consumerRecord => consumerRecord.value)
-
-        val control = topicSource
-          .toMat(Sink.foreach(m => {
-            println(
-              "+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++"
-            )
-            out ! m
-          }))(DrainingControl.apply)
-          .run()
-
-        // websocketの接続維持のためメッセージ送信
-        // 本来はtypeなどを持ったjsonを返しクライアントでフィルターする想定
-        val ping = Source
-          .tick(
-            30.second, // delay of first tick
-            30.second, // delay of subsequent ticks
-            "ping" // element emitted each tick
+      val topicSource =
+        Consumer
+          .plainSource[String, String](
+            consumerSettings,
+            Subscriptions.topics("test")
           )
-          .to(Sink.foreach(m => { out ! m }))
-          .run()
+          .map(consumerRecord => consumerRecord.value)
 
-        KafkaWebSocketActor.props(out, control, ping)
-      }
+      val control = topicSource
+        .toMat(Sink.foreach(m => {
+          println(
+            "+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++"
+          )
+          out ! m
+        }))(DrainingControl.apply)
+        .run()
+
+      // websocketの接続維持のためメッセージ送信
+      // 本来はtypeなどを持ったjsonを返しクライアントでフィルターする想定
+      val ping = Source
+        .tick(
+          30.second, // delay of first tick
+          30.second, // delay of subsequent ticks
+          "ping" // element emitted each tick
+        )
+        .to(Sink.foreach(m => { out ! m }))
+        .run()
+
+      KafkaWebSocketActor.props(out, control, ping)
+    }
   }
 }
