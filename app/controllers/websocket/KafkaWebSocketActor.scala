@@ -29,7 +29,25 @@ class KafkaWebSocketActor(
     out ! Json.toJson(Json.obj("message" -> msg))
   }
 
+  override def preStart(): Unit = {
+    super.preStart()
+    println("==================== preStart =======================")
+  }
+
+  override def preRestart(reason: Throwable, message: Option[Any]): Unit = {
+    super.preRestart(reason, message)
+    println(
+      "==================== preRestart(reason, message) ======================="
+    )
+  }
+
+  override def postRestart(reason: Throwable): Unit = {
+    super.postRestart(reason)
+    println("==================== preRestart(reason) =======================")
+  }
+
   override def postStop(): Unit = {
+    println("==================== postStop =======================")
     super.postStop()
     control.shutdown()
     ping.cancel()

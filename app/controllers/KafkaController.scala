@@ -156,10 +156,11 @@ class KafkaController @Inject() extends InjectedController {
                 // 本来はtypeなどを持ったjsonを返しクライアントでフィルターする想定
                 val ping = Source
                   .tick(
-                    3.second, // delay of first tick
+                    30.second, // delay of first tick
                     30.second, // delay of subsequent ticks
                     "ping" // element emitted each tick
                   )
+                  .take((12 * 3600) / 30) //  12時間分実行
                   .to(Sink.foreach(m => {
                     out ! Json.toJson(Json.obj("message" -> m))
                   }))
